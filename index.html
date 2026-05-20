@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Заметка</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f0;
+      --text: #1a1a1a;
+      --muted: #999;
+      --border: #d8d6cf;
+      --accent: #1a1a1a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input#title {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid var(--border);
+      background: transparent;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text);
+      padding: 0 0 12px 0;
+      outline: none;
+      transition: border-color 0.2s;
+      caret-color: var(--accent);
+    }
+
+    input#title::placeholder { color: var(--border); }
+    input#title:focus { border-bottom-color: var(--text); }
+
+    .divider { height: 36px; }
+
+    textarea#body {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--text);
+      resize: none;
+      outline: none;
+      min-height: 260px;
+      caret-color: var(--accent);
+      transition: opacity 0.2s;
+    }
+
+    textarea#body::placeholder { color: var(--border); }
+
+    .footer {
+      margin-top: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .status {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .status.show { opacity: 1; }
+
+    /* Secret reset — tiny dot bottom-right */
+    .secret {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .secret:hover { background: #c0392b; transform: scale(1.6); }
+
+    /* Reset confirmation overlay */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(245,244,240,0.92);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 24px;
+      z-index: 10;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .overlay.active { display: flex; }
+
+    .overlay p {
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+
+    .overlay-btns { display: flex; gap: 20px; }
+
+    .overlay-btns button {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 8px 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    #confirmReset {
+      border-color: #c0392b;
+      color: #c0392b;
+    }
+
+    #confirmReset:hover {
+      background: #c0392b;
+      color: #f5f4f0;
+    }
+
+    #cancelReset:hover {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  
+  <input type="text" id="title" placeholder="Без названия" autocomplete="off" spellcheck="false">
+
+  <div class="divider"></div>
+
+  <textarea id="body" placeholder="Начните писать..."></textarea>
+
+  <div class="footer">
+    <span class="status" id="status">сохранено</span>
+    <div class="secret" id="secretBtn" title=""></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <p>сбросить всё?</p>
+  <div class="overlay-btns">
+    <button id="cancelReset">отмена</button>
+    <button id="confirmReset">сбросить</button>
+  </div>
+</div>
+
+<script>
+  const titleEl = document.getElementById('title');
+  const bodyEl  = document.getElementById('body');
+  const statusEl = document.getElementById('status');
+  const overlay  = document.getElementById('overlay');
+
+  // Load saved values
+  titleEl.value = localStorage.getItem('note_title') || '';
+  bodyEl.value  = localStorage.getItem('note_body')  || '';
+
+  let saveTimer, statusTimer;
+
+  function save() {
+    localStorage.setItem('note_title', titleEl.value);
+    localStorage.setItem('note_body',  bodyEl.value);
+    showStatus();
+  }
+
+  function showStatus() {
+    clearTimeout(statusTimer);
+    statusEl.classList.add('show');
+    statusTimer = setTimeout(() => statusEl.classList.remove('show'), 1600);
+  }
+
+  function onInput() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(save, 600);
+  }
+
+  titleEl.addEventListener('input', onInput);
+  bodyEl.addEventListener('input', onInput);
+
+  // Auto-resize textarea
+  function autoResize() {
+    bodyEl.style.height = 'auto';
+    bodyEl.style.height = Math.max(260, bodyEl.scrollHeight) + 'px';
+  }
+  bodyEl.addEventListener('input', autoResize);
+  autoResize();
+
+  // Secret reset button
+  document.getElementById('secretBtn').addEventListener('click', () => {
+    overlay.classList.add('active');
+  });
+
+  document.getElementById('cancelReset').addEventListener('click', () => {
+    overlay.classList.remove('active');
+  });
+
+  document.getElementById('confirmReset').addEventListener('click', () => {
+    localStorage.removeItem('note_title');
+    localStorage.removeItem('note_body');
+    titleEl.value = '';
+    bodyEl.value  = '';
+    autoResize();
+    overlay.classList.remove('active');
+    statusEl.textContent = 'сброшено';
+    showStatus();
+    setTimeout(() => statusEl.textContent = 'сохранено', 2000);
+  });
+
+  // Close overlay on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') overlay.classList.remove('active');
+  });
+</script>
+</body>
+</html>
