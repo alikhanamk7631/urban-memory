@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Заметка</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>заметка</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -12,251 +11,382 @@
       --bg: #f5f4f0;
       --text: #1a1a1a;
       --muted: #999;
-      --border: #d8d6cf;
+      --border: #ddd;
       --accent: #1a1a1a;
     }
 
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-weight: 300;
+      font-family: 'Georgia', serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
+      padding: 60px 20px 40px;
     }
 
-    .container {
+    .wrap {
       width: 100%;
-      max-width: 560px;
+      max-width: 620px;
       display: flex;
       flex-direction: column;
       gap: 0;
     }
 
-    .label {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
+    /* Setup screen */
+    #setup {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .setup-title {
+      font-size: 13px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 8px;
     }
 
-    input#title {
-      width: 100%;
+    .setup-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .setup-desc a {
+      color: var(--text);
+    }
+
+    .setup-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .setup-field label {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .setup-field input {
+      background: transparent;
       border: none;
       border-bottom: 1px solid var(--border);
-      background: transparent;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 22px;
-      font-weight: 500;
-      color: var(--text);
-      padding: 0 0 12px 0;
-      outline: none;
-      transition: border-color 0.2s;
-      caret-color: var(--accent);
-    }
-
-    input#title::placeholder { color: var(--border); }
-    input#title:focus { border-bottom-color: var(--text); }
-
-    .divider { height: 36px; }
-
-    textarea#body {
-      width: 100%;
-      border: none;
-      background: transparent;
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-weight: 300;
+      padding: 8px 0;
       font-size: 15px;
-      line-height: 1.75;
+      font-family: 'Courier New', monospace;
       color: var(--text);
-      resize: none;
       outline: none;
-      min-height: 260px;
-      caret-color: var(--accent);
-      transition: opacity 0.2s;
+      width: 100%;
     }
 
-    textarea#body::placeholder { color: var(--border); }
+    .setup-field input:focus {
+      border-bottom-color: var(--text);
+    }
 
-    .footer {
-      margin-top: 48px;
+    .btn {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 12px 24px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      align-self: flex-start;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover { opacity: 0.75; }
+    .btn:disabled { opacity: 0.35; cursor: default; }
+
+    /* Note screen */
+    #note { display: none; flex-direction: column; gap: 0; }
+
+    #title-input {
+      background: transparent;
+      border: none;
+      font-size: 28px;
+      font-family: 'Georgia', serif;
+      color: var(--text);
+      outline: none;
+      width: 100%;
+      padding: 0 0 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #title-input::placeholder { color: var(--border); }
+
+    #body-input {
+      background: transparent;
+      border: none;
+      font-size: 16px;
+      font-family: 'Georgia', serif;
+      color: var(--text);
+      outline: none;
+      width: 100%;
+      min-height: 60vh;
+      resize: none;
+      line-height: 1.8;
+      padding: 20px 0 0;
+    }
+
+    #body-input::placeholder { color: var(--border); }
+
+    .status-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
     }
 
-    .status {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 0.08em;
+    #status {
+      font-size: 12px;
       color: var(--muted);
-      opacity: 0;
-      transition: opacity 0.4s;
+      letter-spacing: 0.05em;
     }
 
-    .status.show { opacity: 1; }
+    .save-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 20px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .save-btn:hover { border-color: var(--text); }
+    .save-btn:disabled { opacity: 0.35; cursor: default; }
 
     /* Secret reset — tiny dot bottom-right */
-    .secret {
+    #secret-reset {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
       width: 6px;
       height: 6px;
       border-radius: 50%;
       background: var(--border);
       cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-      flex-shrink: 0;
+      border: none;
+      transition: background 0.2s;
     }
 
-    .secret:hover { background: #c0392b; transform: scale(1.6); }
-
-    /* Reset confirmation overlay */
-    .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(245,244,240,0.92);
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 24px;
-      z-index: 10;
-      font-family: 'IBM Plex Mono', monospace;
-    }
-
-    .overlay.active { display: flex; }
-
-    .overlay p {
-      font-size: 13px;
-      letter-spacing: 0.06em;
-      color: var(--text);
-    }
-
-    .overlay-btns { display: flex; gap: 20px; }
-
-    .overlay-btns button {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 8px 20px;
-      border: 1px solid var(--border);
-      background: transparent;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    #confirmReset {
-      border-color: #c0392b;
-      color: #c0392b;
-    }
-
-    #confirmReset:hover {
-      background: #c0392b;
-      color: #f5f4f0;
-    }
-
-    #cancelReset:hover {
-      background: var(--text);
-      color: var(--bg);
-      border-color: var(--text);
-    }
+    #secret-reset:hover { background: #c00; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  
-  <input type="text" id="title" placeholder="Без названия" autocomplete="off" spellcheck="false">
+<div class="wrap">
 
-  <div class="divider"></div>
+  <!-- SETUP SCREEN -->
+  <div id="setup">
+    <div class="setup-title">настройка</div>
+    <p class="setup-desc">
+      Заметка хранится в GitHub Gist — доступна с любого устройства.<br><br>
+      1. Создай <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank">GitHub токен</a> с правом <code>gist</code>.<br>
+      2. Создай пустой <a href="https://gist.github.com" target="_blank">секретный Gist</a> (файл можно назвать <code>note.json</code>).<br>
+      3. Вставь токен и ID Gist'а ниже.
+    </p>
 
-  <textarea id="body" placeholder="Начните писать..."></textarea>
+    <div class="setup-field">
+      <label>GitHub Token</label>
+      <input id="cfg-token" type="password" placeholder="ghp_xxxxxxxxxx" autocomplete="off" />
+    </div>
 
-  <div class="footer">
-    <span class="status" id="status">сохранено</span>
-    <div class="secret" id="secretBtn" title=""></div>
+    <div class="setup-field">
+      <label>Gist ID</label>
+      <input id="cfg-gist" type="text" placeholder="abc123def456..." autocomplete="off" />
+    </div>
+
+    <button class="btn" id="setup-btn">сохранить и открыть</button>
   </div>
+
+  <!-- NOTE SCREEN -->
+  <div id="note">
+    <input id="title-input" type="text" placeholder="заголовок" />
+    <textarea id="body-input" placeholder="текст заметки..."></textarea>
+    <div class="status-bar">
+      <span id="status">—</span>
+      <button class="save-btn" id="save-btn">сохранить</button>
+    </div>
+  </div>
+
 </div>
 
-<div class="overlay" id="overlay">
-  <p>сбросить всё?</p>
-  <div class="overlay-btns">
-    <button id="cancelReset">отмена</button>
-    <button id="confirmReset">сбросить</button>
-  </div>
-</div>
+<!-- Secret reset button -->
+<button id="secret-reset" title="сбросить настройки"></button>
 
 <script>
-  const titleEl = document.getElementById('title');
-  const bodyEl  = document.getElementById('body');
-  const statusEl = document.getElementById('status');
-  const overlay  = document.getElementById('overlay');
+  const $ = id => document.getElementById(id);
 
-  // Load saved values
-  titleEl.value = localStorage.getItem('note_title') || '';
-  bodyEl.value  = localStorage.getItem('note_body')  || '';
+  const STORE_TOKEN = 'note_token';
+  const STORE_GIST  = 'note_gist';
+  const FILE_NAME   = 'note.json';
 
-  let saveTimer, statusTimer;
+  let token = '', gistId = '';
+  let saveTimer = null;
 
-  function save() {
-    localStorage.setItem('note_title', titleEl.value);
-    localStorage.setItem('note_body',  bodyEl.value);
-    showStatus();
+  // ── Init ──────────────────────────────────────────────────────────────────
+
+  function init() {
+    token  = localStorage.getItem(STORE_TOKEN) || '';
+    gistId = localStorage.getItem(STORE_GIST)  || '';
+
+    if (token && gistId) {
+      showNote();
+      loadNote();
+    } else {
+      showSetup();
+    }
   }
 
-  function showStatus() {
-    clearTimeout(statusTimer);
-    statusEl.classList.add('show');
-    statusTimer = setTimeout(() => statusEl.classList.remove('show'), 1600);
+  // ── Screens ───────────────────────────────────────────────────────────────
+
+  function showSetup() {
+    $('setup').style.display = 'flex';
+    $('note').style.display  = 'none';
   }
 
-  function onInput() {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(save, 600);
+  function showNote() {
+    $('setup').style.display = 'none';
+    $('note').style.display  = 'flex';
   }
 
-  titleEl.addEventListener('input', onInput);
-  bodyEl.addEventListener('input', onInput);
+  // ── Setup ─────────────────────────────────────────────────────────────────
 
-  // Auto-resize textarea
-  function autoResize() {
-    bodyEl.style.height = 'auto';
-    bodyEl.style.height = Math.max(260, bodyEl.scrollHeight) + 'px';
-  }
-  bodyEl.addEventListener('input', autoResize);
-  autoResize();
+  $('setup-btn').addEventListener('click', async () => {
+    const t = $('cfg-token').value.trim();
+    const g = $('cfg-gist').value.trim();
+    if (!t || !g) { alert('заполни оба поля'); return; }
 
-  // Secret reset button
-  document.getElementById('secretBtn').addEventListener('click', () => {
-    overlay.classList.add('active');
+    localStorage.setItem(STORE_TOKEN, t);
+    localStorage.setItem(STORE_GIST, g);
+    token  = t;
+    gistId = g;
+
+    showNote();
+    await loadNote();
   });
 
-  document.getElementById('cancelReset').addEventListener('click', () => {
-    overlay.classList.remove('active');
-  });
+  // ── API ───────────────────────────────────────────────────────────────────
 
-  document.getElementById('confirmReset').addEventListener('click', () => {
-    localStorage.removeItem('note_title');
-    localStorage.removeItem('note_body');
-    titleEl.value = '';
-    bodyEl.value  = '';
-    autoResize();
-    overlay.classList.remove('active');
-    statusEl.textContent = 'сброшено';
-    showStatus();
-    setTimeout(() => statusEl.textContent = 'сохранено', 2000);
-  });
+  async function gistGet() {
+    const r = await fetch(`https://api.github.com/gists/${gistId}`, {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }
+    });
+    if (!r.ok) throw new Error(`get: ${r.status}`);
+    return r.json();
+  }
 
-  // Close overlay on Escape
+  async function gistPatch(content) {
+    const body = { files: { [FILE_NAME]: { content } } };
+    const r = await fetch(`https://api.github.com/gists/${gistId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error(`patch: ${r.status}`);
+    return r.json();
+  }
+
+  // ── Load ──────────────────────────────────────────────────────────────────
+
+  async function loadNote() {
+    setStatus('загрузка...');
+    try {
+      const data = await gistGet();
+      const fileObj = data.files[FILE_NAME];
+      if (fileObj && fileObj.content) {
+        try {
+          const parsed = JSON.parse(fileObj.content);
+          $('title-input').value = parsed.title || '';
+          $('body-input').value  = parsed.body  || '';
+        } catch {
+          // fallback: plain text
+          $('body-input').value = fileObj.content;
+        }
+      }
+      setStatus('загружено · ' + now());
+    } catch (e) {
+      setStatus('ошибка загрузки: ' + e.message);
+    }
+  }
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+
+  async function saveNote() {
+    $('save-btn').disabled = true;
+    setStatus('сохранение...');
+    try {
+      const payload = JSON.stringify({
+        title: $('title-input').value,
+        body:  $('body-input').value
+      }, null, 2);
+      await gistPatch(payload);
+      setStatus('сохранено · ' + now());
+    } catch (e) {
+      setStatus('ошибка сохранения: ' + e.message);
+    } finally {
+      $('save-btn').disabled = false;
+    }
+  }
+
+  $('save-btn').addEventListener('click', saveNote);
+
+  // Ctrl+S / Cmd+S
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') overlay.classList.remove('active');
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      saveNote();
+    }
   });
+
+  // Auto-save after 3 s of inactivity
+  function scheduleAutoSave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNote, 3000);
+  }
+
+  $('title-input').addEventListener('input', scheduleAutoSave);
+  $('body-input').addEventListener('input', scheduleAutoSave);
+
+  // ── Secret reset ──────────────────────────────────────────────────────────
+
+  $('secret-reset').addEventListener('click', () => {
+    if (!confirm('Сбросить настройки? Токен и Gist ID будут удалены с этого устройства.')) return;
+    localStorage.removeItem(STORE_TOKEN);
+    localStorage.removeItem(STORE_GIST);
+    $('title-input').value = '';
+    $('body-input').value  = '';
+    $('cfg-token').value   = '';
+    $('cfg-gist').value    = '';
+    showSetup();
+  });
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  function setStatus(msg) { $('status').textContent = msg; }
+
+  function now() {
+    return new Date().toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ── Start ─────────────────────────────────────────────────────────────────
+
+  init();
 </script>
 </body>
 </html>
